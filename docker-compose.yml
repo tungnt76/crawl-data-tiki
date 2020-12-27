@@ -1,13 +1,12 @@
-version: '3.7'
+version: "3.1"
 
 services:
-    mongodb:
-        image: mongo-crawl-data:latest
-        container_name: mongodb
-        restart: on-failure
+    mongo:
+        image: mongo
+        restart: always
         environment:
-            MONGO_INITDB_ROOT_USERNAME: nttung
-            MONGO_INITDB_ROOT_PASSWORD: mongodb
+            MONGO_INITDB_ROOT_USERNAME: admin
+            MONGO_INITDB_ROOT_PASSWORD: mongo
             MONGO_INITDB_DATABASE: crawl-data
         ports:
             - 27017:27017
