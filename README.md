@@ -1,16 +1,18 @@
-# Crawl Tiki products
+# Crawl data
 
-This repository is used to crawl Laptop products on [Tiki.vn](https://tiki.vn).
+This project is used to crawl data from [Tiki.vn](https://tiki.vn) and save them to MongoDB.
 
-Tham khảo: [Tập tành crawl dữ liệu product của Tiki](https://chidokun.github.io/2020/05/crawl-tiki-products/)
-
-
-
-## How to step
+## Setup
 
 - Install `python` version 3.8, `pip`
 
-- Run command `pip install bs4`, `pip install requests` to install module
+- Docker
+
+- Module
+    - `bs4`
+    - `aiohttp, asyncio`
+    - `pymongo`
+    - ...
 
 - Run project `app.py`
 
