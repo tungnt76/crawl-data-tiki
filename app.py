@@ -8,10 +8,9 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 
 dict_product = {
-    "laptop": "https://tiki.vn/laptop/c8095?src=c.1846.hamburger_menu_fly_out_banner&page={page}",
-    "mouse": "https://tiki.vn/chuot-van-phong/c1829?page={page}",
-    "hdd": "https://tiki.vn/o-cung-hdd/c4051?src=c.4051.hamburger_menu_fly_out_banner&page={page}",
-    "network-equipment": "https://tiki.vn/thiet-bi-mang/c2663?page={page}"
+    "laptop": "https://tiki.vn/laptop/c8095?page={page}",
+    "office-equipment": "https://tiki.vn/thiet-bi-van-phong-thiet-bi-ngoai-vi/c12884?page={page}",
+    "network-equipment": "https://tiki.vn/linh-kien-may-tinh-phu-kien-may-tinh/c8129?page={page}"
 }
 
 # api
@@ -30,13 +29,13 @@ review_data_import_file = "review_data_import.json"
 user_data_import_file = "user_data_import.json"
 
 digit = re.compile(r'\d+')
-PAGE = 1
+NUM_PAGE = 10
 
 headers = {'user-agent': 'my-app/0.0.1', 'Content-Type': 'application/json'}
 
 schema_product_field = ["id", "name", "price", "description", "specifications", "productset_group_name"]
 schema_review_field = ["id", "title", "content", "rating", "created_by", "product_id"]
-schema_user_field = ["id", "name", "fullname","region", "avatar_url", "purchased", "purchased_at"]
+schema_user_field = ["id", "name", "full_name","region", "avatar_url", "purchased", "purchased_at"]
 
 uri_mongodb = "mongodb://admin:mongo@localhost:27017/crawl-data?authSource=admin&w=1"
 
@@ -44,9 +43,9 @@ uri_mongodb = "mongodb://admin:mongo@localhost:27017/crawl-data?authSource=admin
 async def crawl_product_id():
     product_list = []
 
-    for page_index in range(PAGE):
+    for page_index in range(NUM_PAGE):
         for type_product in dict_product:
-            print('Product {}: '.format(type_product))
+            print(f'Product {type_product}: {page_index+1}'.format(type_product))
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(dict_product[type_product].format(page=page_index), headers=headers) as response:
@@ -141,16 +140,16 @@ def field_filter_review(obj, schema_field):
 
 
 
-def field_filter_user(obj, field, schema_field):
-    e = json.loads(obj)[field]
+def field_filter_user(obj, user, schema_field):
+    e = json.loads(obj)
     if not e.get("id", False):
         return None
 
     p = dict()
 
     for field in schema_field:
-        if field in e:
-            p[field] = e.get(field, False)
+        if field in e[user]:
+            p[field] = e[user].get(field, False)
 
     return p
 
@@ -196,7 +195,6 @@ async def main():
     user_json_list = [field_filter_user(r, 'created_by', schema_user_field) for r in review_list]
     save_json(user_json_list, user_data_import_file)
 
-def save_db():
     # database
     myclient = MongoClient(uri_mongodb)
     db = myclient["crawl-data"]
@@ -226,13 +224,10 @@ def save_db():
     with open(user_data_import_file) as file:
         file_data = json.load(file)
         if isinstance(file_data, list):
-            # error
             User.insert_many(file_data)
         else:
             User.insert_one(file_data)
         file.close()
 
-
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
-save_db()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
